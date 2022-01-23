@@ -7,27 +7,29 @@
 #include"shaderClass.h"
 #include<thread>
 #include<chrono>
+#include<vector>
+#include<numeric>
 #define WOBBLE 0.5
 
-short period = 0;
+float_t period = 0;
 void wiggle(GLfloat* vertices, GLsizeiptr size) {
 	
 	double pi = 2 * acos(0.0);
 	using namespace std::chrono_literals;
-	vertices[0] = (WOBBLE * sin(0.01 * pi * period) + 1) * -0.5f;
-	vertices[1] = (WOBBLE * cos(0.01 * pi * period) + 1) * -0.5f * float(sqrt(3)) / 3;
-	vertices[3] = (WOBBLE * sin(0.01 * pi * period + (2 * pi / 3)) + 1) * 0.5f;
-	vertices[4] = (WOBBLE * cos(0.01 * pi * period + (2 * pi / 3)) + 1) * -0.5f * float(sqrt(3)) / 3;
-	vertices[6] = (WOBBLE * sin(0.01 * pi * period + (4 * pi / 3)) * 0.5f);
-	vertices[7] = (WOBBLE * cos(0.01 * pi * period + (4 * pi / 3)) + 1) * 1.0f * float(sqrt(3)) / 3;
-	vertices[9] = (WOBBLE / 3 * cos(-0.01 * pi * period + (0 * pi / 3)) + 1) * -0.5f / 2;
-	vertices[10]= (WOBBLE / 3 * cos(-0.01 * pi * period + (0 * pi / 3)) + 1) * 0.5f * float(sqrt(3)) / 6;
-	vertices[12]= (WOBBLE / 3 * cos(-0.01 * pi * period + (2 * pi / 3)) + 1) * 0.5f / 2;
-	vertices[13]= (WOBBLE / 3 * cos(-0.01 * pi * period + (2 * pi / 3)) + 1) * 0.5f * float(sqrt(3)) / 6;
-	vertices[15]= (WOBBLE / 3 * cos(-0.01 * pi * period + (4 * pi / 3)) * 0.5f) ;
-	vertices[16]= (WOBBLE / 3 * cos(-0.01 * pi * period + (4 * pi / 3)) + 1) * -0.5f * float(sqrt(3)) / 3;
+	vertices[0] = (WOBBLE * sin( pi * period) + 1) * -0.5f ;
+	vertices[1] = (WOBBLE * cos( pi * period) + 1) * -0.5f * float(sqrt(3)) / 3;
+	vertices[3] = (WOBBLE * sin( pi * period + (2 * pi / 3)) + 1) * 0.5f ;
+	vertices[4] = (WOBBLE * cos( pi * period + (2 * pi / 3)) + 1) * -0.5f * float(sqrt(3)) / 3 ;
+	vertices[6] = (WOBBLE * sin( pi * period + (4 * pi / 3)) * 0.5f) ;
+	vertices[7] = (WOBBLE * cos( pi * period + (4 * pi / 3)) + 1) * 1.0f * float(sqrt(3)) / 3 ;
+	vertices[9] = (WOBBLE / 3 * cos(-1 * pi * period + (0 * pi / 3)) + 1) * -0.5f / 2 ;
+	vertices[10]= (WOBBLE / 3 * cos(-1 * pi * period + (0 * pi / 3)) + 1) * 0.5f * float(sqrt(3)) / 6 ;
+	vertices[12]= (WOBBLE / 3 * cos(-1 * pi * period + (2 * pi / 3)) + 1) * 0.5f / 2 ;
+	vertices[13]= (WOBBLE / 3 * cos(-1 * pi * period + (2 * pi / 3)) + 1) * 0.5f * float(sqrt(3)) / 6 ;
+	vertices[15]= (WOBBLE / 3 * cos(-1 * pi * period + (4 * pi / 3)) * 0.5f)  ;
+	vertices[16]= (WOBBLE / 3 * cos(-1 * pi * period + (4 * pi / 3)) + 1) * -0.5f * float(sqrt(3)) / 3;
 
-	std::this_thread::sleep_for(20ms);
+	//std::this_thread::sleep_for(20ms);
 }
 int main() {
 	//initialise glfw
@@ -94,8 +96,14 @@ int main() {
 	//swap front and back buffer to see it displayed
 	glfwSwapBuffers(window);
 	
+	auto currentTime = std::chrono::system_clock::now();
+	auto lastTime = currentTime;
+
 	// lets make a loop to keep the window up until we tell it to close
 	while (!glfwWindowShouldClose(window)) {
+		float_t dt = std::chrono::duration_cast<std::chrono::duration<float_t>>(currentTime - lastTime).count();
+		lastTime = currentTime;
+
 		//modify the clear function to have a better background colour
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);// navy blue, 4th param is alpha (0 transparent 1 opaque) 
 		//now we write to the back buffer what we want to do, i.e clear the screen
@@ -115,10 +123,13 @@ int main() {
 		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
 		//swap front and back buffer to see it displayed
 		glfwSwapBuffers(window);
+		currentTime = std::chrono::system_clock::now();
 		//if we click on the window and we are resizing, interacting with it, 
 		// if it doesnt do anything, windows will think its not responding so this function
 		glfwPollEvents();
-		period++;
+		period += dt;
+		std::cout << "Frame time: " << dt << "\n";
+		
 	}
 	VAO1.Delete();
 	VBO1.Delete();
@@ -128,4 +139,5 @@ int main() {
 	glfwDestroyWindow(window);
 	//for glfwInit()
 	glfwTerminate();
+	std::cin.get();
 }
